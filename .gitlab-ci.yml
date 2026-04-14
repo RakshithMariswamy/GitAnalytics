@@ -1,0 +1,66 @@
+# GitLab Pages deployment for GitAnalytics AI Dashboard
+#
+# How it works:
+#   1. The `pages` job builds the Vite SPA into dist/
+#   2. It copies dist/ → public/  (GitLab Pages always serves from public/)
+#   3. GitLab publishes public/ and exposes it at:
+#      https://<your-username>.gitlab.io/<repo-name>/
+#
+# VITE_BASE_PATH must match your repo name (with leading and trailing slash).
+# Example: if your repo is  gitlab.com/acme/gitanalytics-dashboard
+#          set VITE_BASE_PATH to  /gitanalytics-dashboard/
+#
+# You can override this in Settings → CI/CD → Variables without touching
+# this file.  For a dedicated user/group page repo (named <user>.gitlab.io)
+# set VITE_BASE_PATH to / instead.
+
+default:
+  image: node:20-alpine
+
+# Cache node_modules between runs to speed up subsequent pipelines.
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - node --version
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 hour
+  # Run on every branch so you can validate builds on feature branches too.
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+# GitLab Pages job — MUST be named exactly "pages".
+pages:
+  stage: deploy
+  needs: [build]
+  variables:
+    # Change this to match your repo name, e.g. /gitanalytics-dashboard/
+    # Override in Settings → CI/CD → Variables to avoid editing this file.
+    VITE_BASE_PATH: /gitanalytics-dashboard/
+  script:
+    # Re-build with the correct base path for the Pages sub-path URL.
+    - npm ci
+    - npm run build
+    - mv dist public
+    # SPA fallback: copy index.html to 404.html so deep-links work.
+    - cp public/index.html public/404.html
+  artifacts:
+    paths:
+      - public
+  # Only deploy from the default branch.
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
