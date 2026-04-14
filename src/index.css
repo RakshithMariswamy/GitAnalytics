@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base overrides ──────────────────────────────────────────────────────── */
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Date input dark-mode fix (Webkit) */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #111827;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+}
+
+/* ── Reusable component classes ─────────────────────────────────────────── */
+
+@layer components {
+  .input-field {
+    @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2
+           text-gray-100 placeholder-gray-600 text-sm
+           focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition-colors;
+  }
+}
